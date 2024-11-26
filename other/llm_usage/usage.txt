@@ -1,0 +1,476 @@
+LLM: ChatGPT-4o.
+Date: 25 November 2024
+
+You said:
+how to convert a column of date in this format Mar 3, 2017 into Mar 2017 in R
+
+ChatGPT said:
+ChatGPT
+To convert a column of dates from the format "Mar 3, 2017" into "Mar 2017" in R, you can use the lubridate and dplyr packages, or base R functionality. Here's how:
+
+1. Using lubridate and dplyr
+R
+Copy code
+# Load necessary libraries
+library(lubridate)
+library(dplyr)
+
+# Example data frame
+data <- data.frame(date = c("Mar 3, 2017", "Jan 15, 2020", "Dec 25, 2021"))
+
+# Convert and format the date
+data <- data %>%
+  mutate(date = as.Date(date, format = "%b %d, %Y"),  # Convert to Date format
+         date = format(date, "%b %Y"))               # Extract Month and Year
+
+print(data)
+2. Using Base R
+You can achieve the same result without additional libraries:
+
+R
+Copy code
+# Example data frame
+data <- data.frame(date = c("Mar 3, 2017", "Jan 15, 2020", "Dec 25, 2021"))
+
+# Convert and format the date
+data$date <- format(as.Date(data$date, format = "%b %d, %Y"), "%b %Y")
+
+print(data)
+Output
+For both approaches, the result will be:
+
+yaml
+Copy code
+       date
+1  Mar 2017
+2  Jan 2020
+3  Dec 2021
+Explanation:
+as.Date(date, format = "%b %d, %Y"):
+
+Converts the original string to a Date object.
+%b: Abbreviated month (e.g., "Mar").
+%d: Day of the month (e.g., "3").
+%Y: Four-digit year (e.g., "2017").
+format(date, "%b %Y"):
+
+Reformats the date object to display only the abbreviated month and year.
+This method works efficiently for converting date formats in R. Let me know if you encounter any issues!
+
+You said:
+I want to filtered out games less than 25th percentile of users in R
+ChatGPT said:
+ChatGPT
+To filter out games with fewer user ratings than the 25th percentile of the users column in R, you can calculate the 25th percentile (also called the first quartile or Q1) using the quantile() function and then filter the data accordingly. Here's how to do it:
+
+R Code to Filter Games Below the 25th Percentile
+R
+Copy code
+# Example dataset
+data <- data.frame(
+  name = c("Game A", "Game B", "Game C", "Game D", "Game E"),
+  users = c(5, 50, 20, 100, 80)  # Number of user ratings
+)
+
+# Calculate the 25th percentile
+q1 <- quantile(data$users, probs = 0.25)
+
+# Filter out games with fewer user ratings than the 25th percentile
+filtered_data <- data[data$users >= q1, ]
+
+# Print the filtered dataset
+print(filtered_data)
+Explanation
+quantile():
+
+quantile(data$users, probs = 0.25) calculates the 25th percentile of the users column.
+The probs = 0.25 specifies the first quartile.
+Filter Condition:
+
+data[data$users >= q1, ]: Keeps only rows where the number of user ratings is greater than or equal to the 25th percentile.
+Filtered Dataset:
+
+Games with user ratings below the 25th percentile are excluded.
+Example Output
+For the example data:
+
+plaintext
+Copy code
+  name users
+1 Game A     5
+2 Game B    50
+3 Game C    20
+4 Game D   100
+5 Game E    80
+The 25th percentile (q1) is 20. Games with fewer than 20 users are removed:
+
+plaintext
+Copy code
+  name users
+2 Game B    50
+4 Game D   100
+5 Game E    80
+Optional: Use dplyr for a Cleaner Workflow
+If you prefer using dplyr, you can achieve the same result:
+
+R
+Copy code
+library(dplyr)
+
+# Calculate the 25th percentile and filter
+filtered_data <- data %>%
+  filter(users >= quantile(users, probs = 0.25))
+
+print(filtered_data)
+Conclusion
+This approach ensures that games with insufficient user ratings (below the 25th percentile) are excluded from your dataset, making your analysis more robust. Let me know if you have any questions or need further assistance!
+
+You said:
+I want to create a new column for my cleaned_data and mark the winner of GOTY with 1 and other  0 in R
+ChatGPT said:
+ChatGPT
+To create a new column in your cleaned_data dataset and mark the winner of Game of the Year (GOTY) with 1 and others with 0, you can use the mutate() function from the dplyr package. Here’s how:
+
+Steps to Add the GOTY Column
+Identify GOTY Winners:
+
+Prepare a list or a condition that specifies which games won GOTY.
+Example: Assume you have a vector goty_winners containing the names of the winning games.
+Create a New Column:
+
+Use mutate() to add a new column goty, assigning 1 to winners and 0 to others.
+Code Example
+R
+Copy code
+library(dplyr)
+
+# Example cleaned data
+cleaned_data <- data.frame(
+  name = c("The Legend of Zelda: Breath of the Wild", "Game B", "Game C"),
+  release_date = c("Mar 2017", "Jan 2020", "Dec 2021"),
+  score = c(97, 85, 88),
+  users = c(23624, 15000, 12000)
+)
+
+# List of GOTY winners
+goty_winners <- c("The Legend of Zelda: Breath of the Wild", "Game C")
+
+# Add the goty column
+cleaned_data <- cleaned_data %>%
+  mutate(goty = ifelse(name %in% goty_winners, 1, 0))
+
+# View the updated dataset
+print(cleaned_data)
+Explanation
+goty_winners:
+
+A vector containing the names of GOTY winners. Update this list with the actual winners for your dataset.
+mutate():
+
+Adds a new column (goty) to the cleaned_data DataFrame.
+ifelse():
+
+Checks if the name of each game is in the goty_winners list.
+Assigns 1 if the game is a winner and 0 otherwise.
+Result:
+
+The goty column is added to the dataset with binary values indicating winners.
+Output Example
+For the example dataset:
+
+plaintext
+Copy code
+                                      name release_date score users goty
+1 The Legend of Zelda: Breath of the Wild    Mar 2017    97 23624    1
+2                                   Game B    Jan 2020    85 15000    0
+3                                   Game C    Dec 2021    88 12000    1
+Tips
+Ensure that goty_winners matches the game names in your dataset exactly (case-sensitive).
+If you already have a column indicating GOTY winners (e.g., winner), you can create the goty column based on that.
+Let me know if you need further assistance!
+
+You said:
+generate goty_nominees and goty_winner in form of goty_winners <- c("The Legend of Zelda: Breath of the Wild", "...") based on https://en.wikipedia.org/wiki/The_Game_Award_for_Game_of_the_Year 
+
+ChatGPT said:
+ChatGPT
+Based on the information from The Game Award for Game of the Year - Wikipedia, here are the Game of the Year (GOTY) winners and nominees from 2014 to 2023:
+
+r
+# GOTY Winners
+goty_winners <- c(
+  "Dragon Age: Inquisition",       # 2014
+  "The Witcher 3: Wild Hunt",      # 2015
+  "Overwatch",                     # 2016
+  "The Legend of Zelda: Breath of the Wild",  # 2017
+  "God of War",                    # 2018
+  "Sekiro: Shadows Die Twice",     # 2019
+  "The Last of Us Part II",        # 2020
+  "It Takes Two",                  # 2021
+  "Elden Ring",                    # 2022
+  "Baldur's Gate 3"                # 2023
+)
+
+# GOTY Nominees
+goty_nominees <- list(
+  "2014" = c(
+    "Bayonetta 2",
+    "Dark Souls II",
+    "Dragon Age: Inquisition",
+    "Hearthstone",
+    "Middle-earth: Shadow of Mordor"
+  ),
+  "2015" = c(
+    "Bloodborne",
+    "Fallout 4",
+    "Metal Gear Solid V: The Phantom Pain",
+    "Super Mario Maker",
+    "The Witcher 3: Wild Hunt"
+  ),
+  "2016" = c(
+    "Doom",
+    "Inside",
+    "Overwatch",
+    "Titanfall 2",
+    "Uncharted 4: A Thief's End"
+  ),
+  "2017" = c(
+    "Horizon Zero Dawn",
+    "Persona 5",
+    "PlayerUnknown's Battlegrounds",
+    "Super Mario Odyssey",
+    "The Legend of Zelda: Breath of the Wild"
+  ),
+  "2018" = c(
+    "Assassin's Creed Odyssey",
+    "Celeste",
+    "God of War",
+    "Marvel's Spider-Man",
+    "Monster Hunter: World",
+    "Red Dead Redemption 2"
+  ),
+  "2019" = c(
+    "Control",
+    "Death Stranding",
+    "Resident Evil 2",
+    "Sekiro: Shadows Die Twice",
+    "Super Smash Bros. Ultimate",
+    "The Outer Worlds"
+  ),
+  "2020" = c(
+    "Animal Crossing: New Horizons",
+    "Doom Eternal",
+    "Final Fantasy VII Remake",
+    "Ghost of Tsushima",
+    "Hades",
+    "The Last of Us Part II"
+  ),
+  "2021" = c(
+    "Deathloop",
+    "It Takes Two",
+    "Metroid Dread",
+    "Psychonauts 2",
+    "Ratchet & Clank: Rift Apart",
+    "Resident Evil Village"
+  ),
+  "2022" = c(
+    "A Plague Tale: Requiem",
+    "Elden Ring",
+    "God of War Ragnarök",
+    "Horizon Forbidden West",
+    "Stray",
+    "Xenoblade Chronicles 3"
+  ),
+  "2023" = c(
+    "Alan Wake II",
+    "Baldur's Gate 3",
+    "Marvel's Spider-Man 2",
+    "Resident Evil 4",
+    "Super Mario Bros. Wonder",
+    "The Legend of Zelda: Tears of the Kingdom"
+  )
+)
+This R code defines a vector goty_winners containing the titles of the Game of the Year winners from 2014 to 2023, and a list goty_nominees where each element corresponds to a year and contains a vector of the nominees for that year.
+
+Note: The 2023 nominees and winner are based on the most recent information available as of November 25, 2024.
+
+You said:
+I fit a model with variables like this bayesian_model <- stan_glm(
+  goty_status ~ score + user_score + critic_positivity + critics + user_positivity + log(users),
+  data = data_past_years, 
+  family = binomial(link = "logit"),
+  prior = normal(location = 0, scale = 2.5, autoscale = TRUE),
+  prior_intercept = normal(location = 0, scale = 2.5, autoscale = TRUE),
+  cores = 6,
+  adapt_delta = 0.99,
+  seed = 617
+) for the prior term, how can I change the prior according to knowledge I have, for example I know tga is 90% media score and 10% users score, I want to assign critic_positivity and score(score given by critics) heavier weight in this model
+ChatGPT said:
+ChatGPT
+To incorporate your domain knowledge into the prior for the Bayesian model (e.g., giving more weight to critic-related features like score and critic_positivity), you can specify informative priors for those predictors.
+
+Here’s how you can adjust the prior argument in stan_glm to reflect this:
+
+Steps to Modify Priors
+Understand the Current Prior:
+
+The current prior is weakly informative (normal(location = 0, scale = 2.5)), which applies to all predictors equally.
+This means the model does not currently prioritize any predictor unless strongly indicated by the data.
+Define Informative Priors:
+
+For predictors like score and critic_positivity (where you know they have a larger influence), set priors with:
+A higher mean (location) if you expect a positive effect.
+A smaller standard deviation (scale) to reflect confidence in your expectation.
+Assign Custom Priors:
+
+Use the prior argument to define custom priors for each predictor.
+For example, assign stronger priors to score and critic_positivity, and weaker priors to others.
+Updated Code with Informative Priors
+r
+Copy code
+library(rstanarm)
+
+# Define the Bayesian model with custom priors
+bayesian_model <- stan_glm(
+  goty_status ~ score + user_score + critic_positivity + critics + user_positivity + log(users),
+  data = data_past_years, 
+  family = binomial(link = "logit"),
+  prior = normal(location = c(1.5, 0, 1.5, 0, 0, 0),  # Custom means for predictors
+                 scale = c(1, 2.5, 1, 2.5, 2.5, 2.5),  # Custom standard deviations
+                 autoscale = FALSE),  # Disable autoscaling to preserve prior values
+  prior_intercept = normal(location = 0, scale = 2.5, autoscale = TRUE),
+  cores = 6,
+  adapt_delta = 0.99,
+  seed = 617
+)
+Explanation of Changes
+normal(location = c(...), scale = c(...)):
+
+The location vector specifies the prior mean for each predictor.
+The scale vector specifies the prior standard deviation (smaller values indicate stronger priors).
+Predictors are listed in the order they appear in the formula (score, user_score, critic_positivity, critics, user_positivity, log(users)).
+Custom Prior Settings:
+
+For score and critic_positivity:
+Set location = 1.5 (reflecting a strong positive expectation).
+Set scale = 1 (indicating high confidence in the effect).
+For other predictors (user_score, critics, user_positivity, log(users)):
+Use weaker priors (location = 0 and scale = 2.5) to reflect uncertainty or lesser influence.
+Disable Autoscaling:
+
+Setting autoscale = FALSE ensures the priors are not rescaled based on the data.
+Alternative: Define Priors Individually with prior_summary
+If you prefer to specify priors for individual predictors explicitly (instead of using a vector), use the prior_summary function:
+
+r
+Copy code
+prior_summary(bayesian_model)
+This allows you to review and adjust priors for each term manually.
+
+Checking the Model
+After fitting the model, inspect the prior and posterior distributions:
+
+r
+Copy code
+# Check posterior summary
+summary(bayesian_model)
+
+# Visualize posterior distributions
+plot(bayesian_model)
+Interpreting Custom Priors
+Stronger Priors on Critics:
+The model will prioritize score and critic_positivity in its predictions unless strongly contradicted by the data.
+Weaker Priors on Others:
+Predictors like user_score will have less influence unless supported by the data.
+This approach aligns the priors with your domain knowledge about The Game Awards' weighting of media scores. Let me know if you need further clarification or adjustments!
+
+You said:
+why when I set priors to # Custom priors
+priors <- normal(location = c(1.5, 0, 1.5, 0, 0, 0),  # For score, user_score, etc.
+                 scale = c(1, 2.5, 1, 2.5, 2.5, 2.5),
+                 autoscale = FALSE)
+
+### Model data ####
+
+bayesian_model <- stan_glmer(
+  goty_status ~ score + user_score + critic_positivity + critics + user_positivity + log(users) + (1 | genre),
+  data = data_past_years, 
+  family = binomial(link = "logit"),
+  prior = priors,
+  prior_intercept = normal(0, 2.5, autoscale = TRUE),
+  cores = 6,
+  control = list(adapt_delta = 0.99),
+  seed = 617
+) the model won't build and give Chain 1:   Log probability evaluates to log(0), i.e. negative infinity.
+Chain 1:   Stan can't start sampling from this initial value., but when I set priors to normal(0, 2.5, autoscale = TRUE) it can build
+ChatGPT said:
+ChatGPT
+The issue arises because the custom prior definition you specified does not correctly match the structure and requirements of the stan_glmer function in the rstanarm package. Here's why this happens and how to resolve it:
+
+Why the Issue Occurs
+Custom Prior Mismatch
+
+stan_glmer requires a single prior specification (e.g., normal(location, scale, autoscale)) for all fixed effects, not individual coefficients.
+When you specify location = c(...) and scale = c(...), the function cannot match these to the individual predictors in the formula. This leads to invalid or undefined log-probability calculations.
+Default Priors Work
+
+When you use the default normal(0, 2.5, autoscale = TRUE), it applies the same weakly informative prior to all coefficients. This ensures that all coefficients are validly initialized, which is why the model builds successfully.
+Solution: Use rstanarm-Compatible Priors
+To resolve the issue, you can:
+
+Apply a single prior for all fixed effects.
+If you need custom priors for specific predictors, use the brms package instead, as it supports per-predictor priors.
+Option 1: Single Prior for All Fixed Effects
+To simplify and ensure compatibility with stan_glmer, use the same prior for all predictors:
+
+r
+Copy code
+bayesian_model <- stan_glmer(
+  goty_status ~ score + user_score + critic_positivity + critics + user_positivity + log(users) + (1 | genre),
+  data = data_past_years, 
+  family = binomial(link = "logit"),
+  prior = normal(0, 2.5, autoscale = TRUE),  # Apply the same prior for all fixed effects
+  prior_intercept = normal(0, 2.5, autoscale = TRUE),
+  cores = 6,
+  control = list(adapt_delta = 0.99),
+  seed = 617
+)
+Option 2: Use brms for Custom Priors
+If you want to specify custom priors for individual predictors, switch to the brms package, which allows this flexibility:
+
+r
+Copy code
+library(brms)
+
+# Define custom priors
+priors <- c(
+  set_prior("normal(1.5, 1)", class = "b", coef = "score"),
+  set_prior("normal(0, 2.5)", class = "b", coef = "user_score"),
+  set_prior("normal(1.5, 1)", class = "b", coef = "critic_positivity"),
+  set_prior("normal(0, 2.5)", class = "b", coef = "critics"),
+  set_prior("normal(0, 2.5)", class = "b", coef = "user_positivity"),
+  set_prior("normal(0, 2.5)", class = "b", coef = "log(users)")
+)
+
+# Fit the Bayesian mixed-effects model
+bayesian_model <- brm(
+  goty_status ~ score + user_score + critic_positivity + critics + user_positivity + log(users) + (1 | genre),
+  data = data_past_years,
+  family = bernoulli(link = "logit"),
+  prior = priors,
+  cores = 6,
+  control = list(adapt_delta = 0.99),
+  seed = 617
+)
+Why Default Priors Work
+When you use the default normal(0, 2.5, autoscale = TRUE), stan_glmer:
+
+Applies the same weakly informative prior to all fixed effects.
+Automatically initializes parameters in valid regions.
+Custom priors require exact matching of the number of coefficients and predictors, which stan_glmer doesn’t support for vectorized priors like location = c(...).
+
+Key Points
+Custom priors in stan_glmer: Must be uniform for all fixed effects.
+Custom priors for individual predictors: Use brms.
+Default priors: Automatically ensure compatibility and stability for the model.
+Let me know if you need further clarification or assistance!

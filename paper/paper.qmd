@@ -1,0 +1,305 @@
+---
+title: "Predicting The Game Award for Game of the Year 2024: Analyzing Trends and Ratings in the Video Game Industry (2014–2024)"
+subtitle: "A Logistic Regression Approach Using User and Critic Data on Metacritic to Forecast the 2024 GOTY Winner"
+author: 
+  - Ziqi Zhu
+thanks: "Code and data are available at: [https://github.com/zzq20010617/2024TGA-goty-predictions](https://github.com/zzq20010617/2024TGA-goty-predictions)."
+date: today
+date-format: long
+abstract: ""
+number-sections: true
+bibliography: references.bib
+format:
+  pdf:
+    toc: true
+    number-sections: true
+    colorlinks: true
+---
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(patchwork)
+library(rstanarm)
+library(knitr)
+library(kableExtra)
+```
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+# Load analysis data
+analysis_data <- read_csv(here::here("data/02-analysis_data/analysis_data.csv"))
+
+# Filter for entries in 2024
+data_2024 <- analysis_data %>%
+  filter(year(release_date) == 2024)
+
+# Filter for non-2024 entries
+data_past_years <- analysis_data %>%
+  filter(year(release_date) != 2024)
+
+```
+
+# Introduction
+
+Over the past decade, the video game industry has experienced significant growth, evolving from a niche market into a global entertainment powerhouse valued at approximately $244.22 billion in 2024 [@mordor2024gaming]. Annual accolades such as the Game of the Year (GOTY) award at The Game Awards (TGA) have become critical markers of success for developers and publishers, influencing sales, visibility, and industry trends. Since its inception in 2014, TGA has been produced and hosted by Canadian games journalist Geoff Keighley. The nominees for the 2024 GOTY were announced on November 18, with the final winner set to be revealed on December 12. This paper aims to predict the winner of the 2024 GOTY by analyzing historical data from 2014 to 2023 collected from Metacritic, through factors such as user and critic reviews, positivity rates, release dates, and genres. Using a Bayesian logistic regression model, this study provides a data-driven framework to forecast which nominated game is most likely to claim this prestigious title.
+
+The estimand for this study is the relationship between various factors associated with games on Metacritic—such as scores, positivity ratios from players and critics, and genre—and the probability of a video game winning the GOTY award at The Game Awards (TGA) in 2024.
+
+Results paragraph ...
+
+The GOTY award holds significant cultural and financial importance within the video game industry. A win—or even a nomination—can dramatically increase a game's visibility, boost sales, and enhance the reputation of its developers and publishers. Understanding the factors that contribute to GOTY success provides valuable insights for stakeholders, including game developers, publishers, and marketers, enabling them to strategize and optimize future projects.
+
+A case in point is Concord, a multiplayer first-person hero shooter game released on August 23, 2024, which was a commercial failure. Despite being backed by Sony Entertainment, Concord failed to exceed 700 simultaneous players on the Steam platform [@theverge2024sony], resulting in millions of dollars in losses for the publisher [@forbes2024concord]. On Metacritic, Concord received a mediocre Metascore of 62/100 based on 46 critic reviews and a dismal user score of 1.7/10 from 1,170 user reviews. This stark disparity highlights the importance of understanding player preferences and delivering games that resonate with the market. As the case of Concord demonstrates, failing to align with audience expectations can have dire consequences, reinforcing the importance of using data-driven approaches to predict and optimize success in a highly competitive industry.
+
+# Data {#sec-data}
+
+## Overview
+
+I use the statistical programming **language R** [@citeR], and packages **lubridate** [@lubridate], **dplyr** [@dplyr], **tidyverse** [@tidyverse] to process the data. The data were scraped from Metacritic best games from 2014 to 2024 [@metacritic2024], with a modified version of scrape scripts orginally from Bruno Vieira Ribeiro's repo [@BVRgame]. I consider use a bayesian logistic regression model to predict the winner of The Game Award for Game of the Year 2024.
+
+## Measurement
+	
+The raw dataset was scraped from Metacritic, a website that aggregates reviews for films, television shows, music albums, and video games. This study focuses on games released between 2014 and 2024. For each game listed on Metacritic, the dataset includes reviews from both critics and users. The data also includes downloadable content (DLC) alongside full games. For example, the action RPG "The Witcher 3: Wild Hunt," released in 2015, and its DLCs "Blood and Wine" and "Hearts of Stone" are all included. Since The Game Awards (TGA) revised their rules in 2024 to make DLCs eligible for GOTY nominations, these entries are retained in the analysis. Preview of first several rows of cleaned dataset ordered by Metascore can be found in @tbl-dataset-preview.
+
+```{r}
+#| label: tbl-dataset-preview
+#| tbl-cap: Preview of Best Games from 2014 to 2023 provided by Metacritic
+#| echo: false
+#| warning: false
+#| message: false
+
+analysis_data |>
+  head(3) |>
+  kable() |>
+  kable_styling(
+    font_size = 6,
+    latex_options = c("scale_down")
+  )|>
+  column_spec(1, width = "2.5cm")
+```
+
+## Outcome variables
+
+The primary outcome variable is GOTY status, coded as 1 if a game wins the GOTY award and 0 otherwise. This variable serves as the response variable in the Bayesian logistic regression model. However, due to the highly imbalanced nature of the dataset—only 10 games out of 3,993 listed on Metacritic between 2014 and 2023 won GOTY—the model focuses on predicting the mean probability of winning GOTY for games released in 2024. This approach allows for comparison of the likelihood of winning among potential contenders.
+
+## Predictor variables
+
+### Score and User Score
+
+Score also called Metascore is a score to meausre quality of a game in scale of 100 the average score of the platform that has most critics reviewed, for example a game recieve 92 on PC end by 50 critics and 94 on Playstation 5 by 70 critics, the 94 will take acount. User score is similar to it but is a combination of user reviews for all platforms on Metacritic, in sclae of 10.
+
+```{r}
+#| label: fig-scores
+#| fig-cap: "Distribution of scores rated by critics and users on Metacritic"
+#| echo: false
+#| warning: false
+
+
+ms_graph <- ggplot(analysis_data, aes(x = score)) +
+  geom_bar(fill = "blue", color = "black") +
+  labs(x = "Metascore",
+       y = "Frequency") +
+  theme_minimal()
+
+us_graph <- ggplot(analysis_data, aes(x = user_score)) +
+  geom_bar(fill = "red", color = "black") +
+  labs(x = "User Score",
+       y = "Frequency") +
+  theme_minimal()
+
+ms_graph + us_graph
+```
+The Metascore and user score in @fig-scores presents the distribution of scores among all of the games in the dataset, showing a similar unimodal and slightly skewed left with peak around 75. Suggesting that most games are considered "good" by critics. While there are more games with low User Scores (below 5) compared to the Metascore distribution, showing useres might be more strict when reviewing a game.
+
+### Critics Positivity and User Positivity
+
+The positivity of user and critics is the positivy rate of a critic or user. Note that the sentiment of critics can be positive, mixed, or negative, but they don't necessarily to have a score for review, so the sum of positive, mixed, and negative ratio is not 100% for critics, while usesr have to give a score for reviewing so User Positivity will be exact ratio.
+
+```{r}
+#| label: fig-positive
+#| fig-cap: "Comparison of Critics Positivity vs. User Positivity Distribution"
+#| echo: false
+#| warning: false
+
+
+ggplot(analysis_data) +
+  geom_density(aes(x = critic_positivity, fill = "Critics"), alpha = 0.5) +
+  geom_density(aes(x = user_positivity, fill = "Users"), alpha = 0.5) +
+  scale_fill_manual(values = c("Critics" = "blue", "Users" = "red")) +
+  labs(
+    x = "Positivity (%)",
+    y = "Density"
+  ) +
+  theme_minimal()
+```
+### Users and Critics
+
+User and Critics are number of user and critics that leave a review for the game, normally greater user and critics review number means the game has more attention and greater number of players. In our model the `users` predictor is log-transformed, for reducing the influence of extreme values and improve the stability of the model.
+
+### Genre
+
+Genre is the category of a game, this table @tbl-genrecount shows the count of top 10 genre of all games from 2014 to 2024. A game is classified to the most related genre on Metacritic.
+
+```{r}
+#| echo: false
+#| eval: true
+#| label: tbl-genrecount
+#| warning: false
+
+# Calculate the top 10 genres by frequency
+top_genres <- analysis_data %>%
+  count(genre, sort = TRUE) %>%  # Count the occurrences of each genre
+  top_n(10, n)                  # Select the top 10 genres
+
+# Display the table using knitr::kable
+top_genres %>%
+  rename(Genre = genre, Count = n) %>%  # Rename columns for better presentation
+  kable(caption = "Top 10 Genres by Frequency in Metacritic Best games 2014-2024")
+```
+
+
+# Model {#sec-models}
+
+The Bayesian logistic regression model is designed to predict whether a game achieves Game of the Year (GOTY) winner based on various predictors. Background details and diagnostics are included in [Appendix -@sec-model-details].
+
+## Model set-up
+
+The logistic regression model I will be using is:
+
+\begin{align}
+\log\left(\frac{\hat{p}}{1 - \hat{p}}\right) &= \beta_0 + \beta_1 \times \text{score} + \beta_2 \times \text{user\_score} + \beta_3 \times \text{critic\_positivity} \\
+&\quad + \beta_4 \times \text{critics} + \beta_5 \times \text{user\_positivity} + \beta_6 \times \log(\text{users}) + b_{\text{genre}}
+\end{align}
+
+$$
+\begin{aligned}
+\beta_0 & \sim \mbox{Normal}(0, 2.5)\\
+\beta_1 & \sim \mbox{Normal}(0, 2.5)\\
+\beta_2 & \sim \mbox{Normal}(0, 2.5)\\
+\beta_3 & \sim \mbox{Normal}(0, 2.5)\\
+\beta_4 & \sim \mbox{Normal}(0, 2.5)\\
+\beta_5 & \sim \mbox{Normal}(0, 2.5)\\
+\beta_6 & \sim \mbox{Normal}(0, 2.5)\\
+b_{\text{genre}} & \sim \mbox{Normal}(0, \tau_{\text{genre}}) \\
+\tau_{\text{genre}} & \sim \mbox{Exponential}(1)
+\end{aligned}
+$$
+
+where,
+
+- $\hat{p}$ represents the probability that a game is a GOTY winner.
+- $\beta_0$ represents the intercept term of the logistic regression.
+- $\beta_1$ is the coefficient corresponding to the **Metascore** (critics' aggregated score).
+- $\beta_2$ is the coefficient corresponding to the **User Score** (average user rating).
+- $\beta_3$ is the coefficient corresponding to the **Critic Positivity** percentage (positive critic reviews).
+- $\beta_4$ is the coefficient corresponding to the **Number of Critics** (total number of critic reviews).
+- $\beta_5$ is the coefficient corresponding to the **User Positivity** percentage (positive user reviews).
+- $\beta_6$ is the coefficient corresponding to the **Log-transformed Number of User Reviews**.
+- $b_{\text{genre}}$ represents the random effect for each game genre.
+- $\tau_{\text{genre}}$ is the standard deviation of the random effects for genres, drawn from an exponential prior.
+
+
+We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`, reflecting no strong assumptions about the weight of each predictors' effects.
+
+
+## Model justification
+
+
+# Results
+
+To get a prediction by the Bayesian model, we use games that are released in 2024 and generate posterior predictions by the new data frame. The mean probability (mean_prob) was used as the primary metric for comparison because the data contains significant class imbalance (10 winner out of 3993 games for past decade). Given that only a small proportion of games achieve GOTY winner, the model is more likely to assign low probabilities for the majority of games, resulting in most predictions being 0 if using a hard classification threshold like 0.5. By using the mean_prob, it allows us to rank games based on their likelihood of being the winners rather than forcing a binary classification, which are more informative for identifying potential GOTY contenders, especially when making comparisons within the 2024 dataset. In addition, I selected the top 10th percentile of games based on their mean_prob and set their goty_status to 1, marking them as potential winners of GOTY. The results are displayed in @tbl-winner. For example, the first row shows that "Elden Ring: Shadow of the Erdtree" has a mean_prob of 0.06675, indicating that it is predicted to win the GOTY award in 267 out of 4000 iterations.
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+
+
+bayesian_model <-
+  readRDS(file = here::here("models/bayesian_model.rds"))
+```
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+set.seed(617)
+predicted_probs <- posterior_predict(bayesian_model, newdata = data_2024, type = "response")
+
+data_2024$mean_prob <- apply(predicted_probs, 2, mean)
+
+top_10_percent_threshold <- quantile(data_2024$mean_prob, 0.9)
+
+data_2024 <- data_2024 %>%
+  mutate(goty_status = ifelse(mean_prob >= top_10_percent_threshold, 1, 0))
+```
+
+```{r}
+#| echo: false
+#| eval: true
+#| label: tbl-winner
+#| warning: false
+
+data_2024 %>%
+  filter(goty_status == 1) %>%
+  select(-user_positivity, -critic_positivity, -release_date, -goty_status) %>%
+  rename(
+    Genre = genre,
+    "User Score" = user_score,
+    "Score" = score
+  ) %>%
+  arrange(desc(mean_prob)) %>%
+  mutate(Rank = row_number()) %>%
+  relocate(Rank) %>% 
+  kable(caption = "Potential winner of 2024 GOTY") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover"), font_size = 6) %>%
+  row_spec(0, bold = TRUE)
+```
+
+
+
+# Discussion
+
+## Predict result and actual nominees for 2024 {#sec-first-point}
+
+
+## Key Predictors of GOTY
+
+## Genre-Level Analysis/Whether DLCs should be nominated as GOTY
+
+## Weaknesses and next steps
+
+
+\newpage
+
+\appendix
+
+# Appendix {-}
+
+
+# Additional data details
+
+# Model details {#sec-model-details}
+
+## Posterior predictive check
+
+
+## Diagnostics
+
+
+\newpage
+
+
+# References
+
+
