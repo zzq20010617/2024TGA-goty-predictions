@@ -1,12 +1,12 @@
 ---
-title: "Predicting The Game Award for Game of the Year 2024: Analyzing Trends and Ratings in the Video Game Industry (2014–2024)"
-subtitle: "A Logistic Regression Approach Using User and Critic Data on Metacritic to Forecast the 2024 GOTY Winner"
+title: "Predicting Game of the Year (GOTY) 2024: A Bayesian Analysis of Video Game Metrics from Metacritic"
+subtitle: "A Logistic Regression Approach Analysing Data from 2014–2023 to Forecast GOTY Success at The Game Awards"
 author: 
   - Ziqi Zhu
 thanks: "Code and data are available at: [https://github.com/zzq20010617/2024TGA-goty-predictions](https://github.com/zzq20010617/2024TGA-goty-predictions)."
 date: today
 date-format: long
-abstract: ""
+abstract: "Abstract..."
 number-sections: true
 bibliography: references.bib
 format:
@@ -208,7 +208,7 @@ where,
 - $\tau_{\text{genre}}$ is the standard deviation of the random effects for genres, drawn from an exponential prior.
 
 
-We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`, reflecting no strong assumptions about the weight of each predictors' effects.
+I run the model in R [@citeR] using the `rstanarm` package of @rstanarm. I use the default priors from `rstanarm`, reflecting no strong assumptions about the weight of each predictors' effects.
 
 
 ## Model justification
@@ -216,7 +216,7 @@ We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use
 
 # Results
 
-To get a prediction by the Bayesian model, we use games that are released in 2024 and generate posterior predictions by the new data frame. The mean probability (mean_prob) was used as the primary metric for comparison because the data contains significant class imbalance (10 winner out of 3993 games for past decade). Given that only a small proportion of games achieve GOTY winner, the model is more likely to assign low probabilities for the majority of games, resulting in most predictions being 0 if using a hard classification threshold like 0.5. By using the mean_prob, it allows us to rank games based on their likelihood of being the winners rather than forcing a binary classification, which are more informative for identifying potential GOTY contenders, especially when making comparisons within the 2024 dataset. In addition, I selected the top 10th percentile of games based on their mean_prob and set their goty_status to 1, marking them as potential winners of GOTY. The results are displayed in @tbl-winner. For example, the first row shows that "Elden Ring: Shadow of the Erdtree" has a mean_prob of 0.06675, indicating that it is predicted to win the GOTY award in 267 out of 4000 iterations.
+To get a prediction by the Bayesian model, I use games that are released in 2024 and generate posterior predictions by the new data frame. The mean probability (mean_prob) was used as the primary metric for comparison because the data contains significant class imbalance (10 winner out of 3993 games for past decade). Given that only a small proportion of games achieve GOTY winner, the model is more likely to assign low probabilities for the majority of games, resulting in most predictions being 0 if using a hard classification threshold like 0.5. By using the mean_prob, it allows us to rank games based on their likelihood of being the winners rather than forcing a binary classification, which are more informative for identifying potential GOTY contenders, especially when making comparisons within the 2024 dataset. In addition, I selected the top 10th percentile of games based on their mean_prob and set their goty_status to 1, marking them as potential winners of GOTY. The results are displayed in @tbl-winner. For example, the first row shows that "Elden Ring: Shadow of the Erdtree" has a mean_prob of 0.06675, indicating that it is predicted to win the GOTY award in 267 out of 4000 iterations.
 
 ```{r}
 #| echo: false
