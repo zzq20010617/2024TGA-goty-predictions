@@ -48,10 +48,32 @@ bayesian_model <- stan_glmer(
 )
 
 
+bayesian_model_interact <- stan_glmer(
+  goty_status ~ score + user_score + critic_positivity * critics + user_positivity * log(users) + (1 | genre),
+  data = data_past_years,
+  family = binomial(link = "logit"),
+  prior = priors,
+  prior_intercept = priors,
+  cores = 6,
+  control = list(adapt_delta = 0.99),
+  seed = 617
+)
+
+bayesian_model_weighted <- stan_glmer(
+  goty_status ~ score + user_score + critic_positivity + critics + user_positivity + log(users) + (1 | genre),
+  data = data_past_years,
+  family = binomial(link = "logit"),
+  prior = priors,
+  prior_intercept = priors,
+  weights = weight,
+  cores = 6,
+  control = list(adapt_delta = 0.99),
+  seed = 617
+)
+
 #### Save model ####
 saveRDS(
   bayesian_model,
   file = "models/bayesian_model.rds"
 )
-
 

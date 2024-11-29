@@ -51,7 +51,7 @@ Steps used in scraper:
 """
 pages = {}
 
-for page in range(1, 249):
+for page in range(1, 250):
     
     data_page = {
         'name':[],
