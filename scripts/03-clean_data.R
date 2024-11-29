@@ -38,65 +38,6 @@ goty_winners <- c(
   "Baldur's Gate 3"                # 2023
 )
 
-# GOTY Nominees
-goty_nominees <- c(
-  "Bayonetta 2",                   # 2014
-  "Dark Souls II",
-  "Dragon Age: Inquisition",
-  "Hearthstone: Heroes of Warcraft",
-  "Middle-earth: Shadow of Mordor",
-  "Bloodborne",                    # 2015
-  "Fallout 4",
-  "Metal Gear Solid V: The Phantom Pain",
-  "Super Mario Maker",
-  "The Witcher 3: Wild Hunt",
-  "DOOM",                          # 2016
-  "Inside",
-  "Overwatch",
-  "Titanfall 2",
-  "Uncharted 4: A Thief's End",
-  "Horizon Zero Dawn",             # 2017
-  "Persona 5",
-  "PlayerUnknown's Battlegrounds",
-  "Super Mario Odyssey",
-  "The Legend of Zelda: Breath of the Wild",
-  "Assassin's Creed Odyssey",      # 2018
-  "Celeste",
-  "God of War",
-  "Marvel's Spider-Man",
-  "Monster Hunter: World",
-  "Red Dead Redemption 2",
-  "Control",                       # 2019
-  "Death Stranding",
-  "Resident Evil 2",
-  "Sekiro: Shadows Die Twice",
-  "Super Smash Bros. Ultimate",
-  "The Outer Worlds",
-  "Animal Crossing: New Horizons", # 2020
-  "Doom Eternal",
-  "Final Fantasy VII Remake",
-  "Ghost of Tsushima",
-  "Hades",
-  "The Last of Us Part II",
-  "Deathloop",                     # 2021
-  "It Takes Two",
-  "Metroid Dread",
-  "Psychonauts 2",
-  "Ratchet & Clank: Rift Apart",
-  "Resident Evil Village",
-  "A Plague Tale: Requiem",        # 2022
-  "Elden Ring",
-  "God of War: Ragnarok",
-  "Horizon Forbidden West",
-  "Stray",
-  "Xenoblade Chronicles 3",
-  "Alan Wake II",                  # 2023
-  "Baldur's Gate 3",
-  "Marvel's Spider-Man 2",
-  "Resident Evil 4",
-  "Super Mario Bros. Wonder",
-  "The Legend of Zelda: Tears of the Kingdom"
-)
 
 # Add goty_status column set winners from past years to 1
 cleaned_data_win <- cleaned_data %>%

@@ -1,14 +1,12 @@
 #### Preamble ####
-# Purpose: Tests the structure and validity of the simulated Australian 
-  #electoral divisions dataset.
-# Author: Rohan Alexander
-# Date: 26 September 2024
-# Contact: rohan.alexander@utoronto.ca
+# Purpose: Tests the structure and validity of the simulated video game dataset.
+# Author: Ziqi Zhu
+# Date: 29 November 2024
+# Contact: ziqi.zhu@mail.utoronto.ca
 # License: MIT
 # Pre-requisites: 
   # - The `tidyverse` package must be installed and loaded
   # - 00-simulate_data.R must have been run
-# Any other information needed? Make sure you are in the `starter_folder` rproj
 
 
 #### Workspace setup ####
@@ -26,45 +24,25 @@ if (exists("analysis_data")) {
 
 #### Test data ####
 
-# Check if the dataset has 151 rows
-if (nrow(analysis_data) == 151) {
-  message("Test Passed: The dataset has 151 rows.")
+# Check if the dataset has 100 rows
+if (nrow(analysis_data) == 100) {
+  message("Test Passed: The dataset has 100 rows.")
 } else {
-  stop("Test Failed: The dataset does not have 151 rows.")
+  stop("Test Failed: The dataset does not have 100 rows.")
 }
 
-# Check if the dataset has 3 columns
-if (ncol(analysis_data) == 3) {
-  message("Test Passed: The dataset has 3 columns.")
+# Check if the dataset has 9 columns
+if (ncol(analysis_data) == 9) {
+  message("Test Passed: The dataset has 9 columns.")
 } else {
-  stop("Test Failed: The dataset does not have 3 columns.")
+  stop("Test Failed: The dataset does not have 9 columns.")
 }
 
-# Check if all values in the 'division' column are unique
-if (n_distinct(analysis_data$division) == nrow(analysis_data)) {
-  message("Test Passed: All values in 'division' are unique.")
+# Check if all values in the 'game_id' column are unique
+if (n_distinct(analysis_data$game_id) == nrow(analysis_data)) {
+  message("Test Passed: All values in 'game_id' are unique.")
 } else {
-  stop("Test Failed: The 'division' column contains duplicate values.")
-}
-
-# Check if the 'state' column contains only valid Australian state names
-valid_states <- c("New South Wales", "Victoria", "Queensland", "South Australia", 
-                  "Western Australia", "Tasmania", "Northern Territory", 
-                  "Australian Capital Territory")
-
-if (all(analysis_data$state %in% valid_states)) {
-  message("Test Passed: The 'state' column contains only valid Australian state names.")
-} else {
-  stop("Test Failed: The 'state' column contains invalid state names.")
-}
-
-# Check if the 'party' column contains only valid party names
-valid_parties <- c("Labor", "Liberal", "Greens", "National", "Other")
-
-if (all(analysis_data$party %in% valid_parties)) {
-  message("Test Passed: The 'party' column contains only valid party names.")
-} else {
-  stop("Test Failed: The 'party' column contains invalid party names.")
+  stop("Test Failed: The 'game_id' column contains duplicate values.")
 }
 
 # Check if there are any missing values in the dataset
@@ -74,16 +52,32 @@ if (all(!is.na(analysis_data))) {
   stop("Test Failed: The dataset contains missing values.")
 }
 
-# Check if there are no empty strings in 'division', 'state', and 'party' columns
-if (all(analysis_data$division != "" & analysis_data$state != "" & analysis_data$party != "")) {
-  message("Test Passed: There are no empty strings in 'division', 'state', or 'party'.")
+# Check if there are no empty strings in 'genre' columns
+if (all(analysis_data$genre != "")) {
+  message("Test Passed: There are no empty strings in 'genre'.")
 } else {
-  stop("Test Failed: There are empty strings in one or more columns.")
+  stop("Test Failed: There are empty strings in genre columns.")
 }
 
-# Check if the 'party' column has at least two unique values
-if (n_distinct(analysis_data$party) >= 2) {
-  message("Test Passed: The 'party' column contains at least two unique values.")
+# Check that all release dates fall between 2014 and 2023:
+if (all(analysis_data$release_date >= as.Date("2014-01-01") &
+        analysis_data$release_date <= as.Date("2023-12-31"))) {
+  message("Test Passed: All release dates are within the valid range.")
 } else {
-  stop("Test Failed: The 'party' column contains less than two unique values.")
+  stop("Test Failed: Release dates are out of bounds.")
+}
+
+# Ensure scores fall within their expected ranges
+if (all(analysis_data$critic_score >= 0 & analysis_data$critic_score <= 100) &&
+    all(analysis_data$user_score >= 0 & analysis_data$user_score <= 10)) {
+  message("Test Passed: Scores fall within valid ranges.")
+} else {
+  stop("Test Failed: Scores are out of bounds.")
+}
+
+# Verify the proportion of GOTY winners is consistent with your expectations (e.g., 10 winners for 10 years):
+if (sum(analysis_data$goty_status == 1) == 10) {
+  message("Test Passed: Correct number of GOTY winners.")
+} else {
+  stop("Test Failed: Incorrect number of GOTY winners.")
 }
