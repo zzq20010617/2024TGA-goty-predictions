@@ -23,7 +23,6 @@ if (exists("analysis_data")) {
   stop("Test Failed: The dataset could not be loaded.")
 }
 
-
 #### Test data ####
 
 # Create a test suite for the analysis dataset
@@ -59,4 +58,8 @@ test_that("Dataset Validation Tests", {
   # 6. Verify the proportion of GOTY winners is consistent (10 winners)
   expect_equal(sum(analysis_data$goty_status == 1), 10, 
                label = "There should be exactly 10 GOTY winners")
+  
+  # 7. Verify the game name is unique
+  expect_equal(n_distinct(analysis_data$name), nrow(analysis_data), 
+               label = "The dataset should have unique game names")
 })

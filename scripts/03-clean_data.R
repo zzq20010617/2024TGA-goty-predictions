@@ -17,6 +17,7 @@ raw_data <- read_csv(here::here("data/01-raw_data/raw_data.csv"))
 cleaned_data <-
   raw_data |>
   janitor::clean_names() %>% 
+  distinct() %>%
   mutate(release_date = mdy(release_date)) %>%
   select(-publisher, -developer) %>%
   tidyr::drop_na()|>
